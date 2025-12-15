@@ -8,5 +8,6 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-      - name: Print message
-        run: echo "Hello Teams 👋 GitHub Actions is runs"
+      - name: Fail intentionally
+        run: exit 1
+
