@@ -1,0 +1,12 @@
+name: Teams Notification Test
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Print message
+        run: echo "Hello Teams 👋 GitHub Actions is running"
