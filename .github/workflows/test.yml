@@ -23,15 +23,15 @@ jobs:
           echo "Deploying to $ENVIRONMENT..."
           sleep 2
 
-      - name: Send Teams Notification
+      - name: Send Teams Notification (Lorax Style)
         if: always()
         run: |
-          STATUS="SUCCESS"
-          COLOR="00FF00"
-
-          if [ "${{ job.status }}" != "success" ]; then
-            STATUS="FAILED"
+          if [ "${{ job.status }}" = "success" ]; then
+            COLOR="00FF00"
+            STATUS_TEXT="Workflow ${{ github.workflow }} on branch ${{ github.ref_name }} completed successfully."
+          else
             COLOR="FF0000"
+            STATUS_TEXT="Workflow ${{ github.workflow }} on branch ${{ github.ref_name }} failed."
           fi
 
           curl -H "Content-Type: application/json" -d "{
@@ -40,23 +40,18 @@ jobs:
             \"themeColor\": \"${COLOR}\",
             \"summary\": \"GitHub Actions - ${{ github.repository }}\",
             \"title\": \"GitHub Actions - ${{ github.repository }}\",
-            \"sections\": [{
-              \"facts\": [
-                {\"name\": \"Workflow\", \"value\": \"${{ github.workflow }}\"},
-                {\"name\": \"Environment\", \"value\": \"${ENVIRONMENT}\"},
-                {\"name\": \"Branch\", \"value\": \"${{ github.ref_name }}\"},
-                {\"name\": \"Commit\", \"value\": \"${{ github.sha }}\"},
-                {\"name\": \"Status\", \"value\": \"${STATUS}\"},
-                {\"name\": \"Runner\", \"value\": \"${RUNNER_NAME}\"}
-              ],
-              \"markdown\": true
-            }],
-            \"potentialAction\": [{
-              \"@type\": \"OpenUri\",
-              \"name\": \"View Workflow Run\",
-              \"targets\": [{
-                \"os\": \"default\",
-                \"uri\": \"${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}\"
-              }]
-            }]
+            \"sections\": [
+              {
+                \"facts\": [
+                  { \"name\": \"Workflow\", \"value\": \"${{ github.workflow }}\" },
+                  { \"name\": \"Environment\", \"value\": \"${ENVIRONMENT}\" },
+                  { \"name\": \"Branch\", \"value\": \"${{ github.ref_name }}\" },
+                  { \"name\": \"Commit\", \"value\": \"${{ github.sha }}\" },
+                  { \"name\": \"Status\", \"value\": \"${STATUS_TEXT}\" },
+                  { \"name\": \"Run URL\", \"value\": \"${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}\" },
+                  { \"name\": \"Runner\", \"value\": \"${RUNNER_NAME}\" }
+                ],
+                \"markdown\": true
+              }
+            ]
           }" ${{ secrets.TEAMS_WEBHOOK_URL }}
