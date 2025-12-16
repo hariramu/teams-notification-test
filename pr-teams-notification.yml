@@ -1,0 +1,40 @@
+name: PR Notifications to Teams
+
+on:
+  pull_request:
+    types: [opened, closed]
+
+jobs:
+  notify-teams:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Prepare PR Message
+        run: |
+          if [ "${{ github.event.action }}" = "opened" ]; then
+            STATUS="🆕 Pull Request Created"
+          elif [ "${{ github.event.action }}" = "closed" ] && [ "${{ github.event.pull_request.merged }}" = "true" ]; then
+            STATUS="✅ Pull Request Merged"
+          else
+            echo "PR closed without merge. No notification sent."
+            exit 0
+          fi
+
+          cat <<EOF > message.json
+          {
+            "text": "**GitHub Pull Request Notification**\n
+**Repository:** ${{ github.repository }}\n
+**PR Title:** ${{ github.event.pull_request.title }}\n
+**PR Number:** #${{ github.event.pull_request.number }}\n
+**Author:** ${{ github.event.pull_request.user.login }}\n
+**Status:** ${STATUS}\n
+**Target Branch:** ${{ github.event.pull_request.base.ref }}\n
+**PR URL:** ${{ github.event.pull_request.html_url }}"
+          }
+          EOF
+
+      - name: Send Notification to Teams
+        run: |
+          curl -H "Content-Type: application/json" \
+               -d @message.json \
+               ${{ secrets.TEAMS_WEBHOOK_URL }}
