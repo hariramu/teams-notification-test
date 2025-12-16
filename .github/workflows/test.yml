@@ -7,7 +7,46 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
-    steps:
-      - name: Fail intentionally
-        run: exit 1
 
+    steps:
+      - name: Run sample job
+        run: |
+          echo "Hello Teams 👋"
+          sleep 2
+
+      - name: Send Teams Notification
+        if: always()
+        run: |
+          STATUS="SUCCESS"
+          COLOR="00FF00"
+
+          if [ "${{ job.status }}" != "success" ]; then
+            STATUS="FAILED"
+            COLOR="FF0000"
+          fi
+
+          curl -H "Content-Type: application/json" -d "{
+            \"@type\": \"MessageCard\",
+            \"@context\": \"http://schema.org/extensions\",
+            \"themeColor\": \"${COLOR}\",
+            \"summary\": \"GitHub Actions Notification\",
+            \"title\": \"GitHub Actions - Teams Notification\",
+            \"sections\": [{
+              \"facts\": [
+                {\"name\": \"Repository\", \"value\": \"${{ github.repository }}\"},
+                {\"name\": \"Workflow\", \"value\": \"${{ github.workflow }}\"},
+                {\"name\": \"Branch\", \"value\": \"${{ github.ref_name }}\"},
+                {\"name\": \"Commit\", \"value\": \"${{ github.sha }}\"},
+                {\"name\": \"Status\", \"value\": \"${STATUS}\"}
+              ],
+              \"markdown\": true
+            }],
+            \"potentialAction\": [{
+              \"@type\": \"OpenUri\",
+              \"name\": \"View Workflow Run\",
+              \"targets\": [{
+                \"os\": \"default\",
+                \"uri\": \"${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}\"
+              }]
+            }]
+          }" ${{ secrets.TEAMS_WEBHOOK_URL }}
