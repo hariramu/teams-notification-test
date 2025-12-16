@@ -1,17 +1,26 @@
-name: Teams Notification Test
+name: Build and Deploy UI -- Prod
 
 on:
   push:
     branches: [ main ]
 
+env:
+  ENVIRONMENT: UAT
+  RUNNER_NAME: loraxui-prod
+
 jobs:
-  test:
+  deploy:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Run sample job
+      - name: Build step
         run: |
-          echo "Hello Teams 👋"
+          echo "Building UI..."
+          sleep 2
+
+      - name: Deploy step
+        run: |
+          echo "Deploying to $ENVIRONMENT..."
           sleep 2
 
       - name: Send Teams Notification
@@ -29,15 +38,16 @@ jobs:
             \"@type\": \"MessageCard\",
             \"@context\": \"http://schema.org/extensions\",
             \"themeColor\": \"${COLOR}\",
-            \"summary\": \"GitHub Actions Notification\",
-            \"title\": \"GitHub Actions - Teams Notification\",
+            \"summary\": \"GitHub Actions - ${{ github.repository }}\",
+            \"title\": \"GitHub Actions - ${{ github.repository }}\",
             \"sections\": [{
               \"facts\": [
-                {\"name\": \"Repository\", \"value\": \"${{ github.repository }}\"},
                 {\"name\": \"Workflow\", \"value\": \"${{ github.workflow }}\"},
+                {\"name\": \"Environment\", \"value\": \"${ENVIRONMENT}\"},
                 {\"name\": \"Branch\", \"value\": \"${{ github.ref_name }}\"},
                 {\"name\": \"Commit\", \"value\": \"${{ github.sha }}\"},
-                {\"name\": \"Status\", \"value\": \"${STATUS}\"}
+                {\"name\": \"Status\", \"value\": \"${STATUS}\"},
+                {\"name\": \"Runner\", \"value\": \"${RUNNER_NAME}\"}
               ],
               \"markdown\": true
             }],
