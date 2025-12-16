@@ -1,4 +1,4 @@
-name: PR Notifications to Teams
+name: PR Notifications to Teamss
 
 on:
   pull_request:
